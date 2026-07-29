@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./assets/zaebal-hero.svg" width="100%" alt="Z.A.E.B.A.L. — self-audit protocol for coding agents">
+<img src="./assets/zaebal-hero.jpg" width="100%" alt="Z.A.E.B.A.L. — self-audit protocol for coding agents">
 
 <h3>
 <strong>Z</strong>aebal? · <strong>A</strong>udit · <strong>E</strong>rrors ·
