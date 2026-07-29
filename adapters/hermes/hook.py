@@ -21,8 +21,9 @@ import json
 import os
 import sys
 
-# Point to the core directory
-CORE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "core")
+# Point to the core directory — resolve symlink first
+REAL_PATH = os.path.realpath(__file__)
+CORE_DIR = os.path.normpath(os.path.join(os.path.dirname(REAL_PATH), "..", "..", "core"))
 sys.path.insert(0, CORE_DIR)
 
 try:

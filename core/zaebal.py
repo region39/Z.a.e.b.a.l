@@ -16,8 +16,14 @@ import time
 import unicodedata
 from pathlib import Path
 
-SKILL_DIR = Path(__file__).resolve().parent.parent
-WORDLISTS_DIR = SKILL_DIR / "references"
+# Wordlists: core/wordlists/ (repo layout) or references/ (skill layout)
+BASE_DIR = Path(__file__).resolve().parent
+WORDLISTS_CANDIDATES = [
+    BASE_DIR / "wordlists",
+    BASE_DIR.parent / "references",
+    BASE_DIR / "references",
+]
+WORDLISTS_DIR = next((p for p in WORDLISTS_CANDIDATES if p.is_dir()), BASE_DIR / "wordlists")
 
 STATE_DIR = Path(os.environ.get("ZAEBAL_STATE_DIR", str(Path.home() / ".zaebal")))
 STATE_FILE = STATE_DIR / "state.json"
