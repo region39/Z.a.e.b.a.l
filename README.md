@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./assets/zaebal-hero.jpg" width="100%" alt="Z.A.E.B.A.L. — self-audit protocol for coding agents">
+<img src="./assets/zaebal-hero.jpg" width="100%" alt="Z.A.E.B.A.L. — протокол самоаудита для кодинг-агентов">
 
 <h3>
 <strong>Z</strong>aebal? · <strong>A</strong>udit · <strong>E</strong>rrors ·
@@ -8,124 +8,132 @@
 </h3>
 
 <p>
-<strong>Read this in other languages</strong><br>
-<a href="README.md">🇺🇸 English</a> ·
-<a href="README.ru.md">🇷🇺 Русский</a>
+<strong>Читать на других языках</strong><br>
+<a href="README.en.md">🇺🇸 English</a> ·
+<a href="README.md">🇷🇺 Русский</a>
 </p>
 
 <p>
-<img alt="Python standard library only" src="https://img.shields.io/badge/Python-stdlib_only-3776AB?style=flat-square&logo=python&logoColor=white">
+<img alt="Только стандартная библиотека Python" src="https://img.shields.io/badge/Python-stdlib_only-3776AB?style=flat-square&logo=python&logoColor=white">
 <img alt="Hermes Agent" src="https://img.shields.io/badge/agent-Hermes-FF6B6B?style=flat-square">
-<img alt="Russian and English detection" src="https://img.shields.io/badge/detection-RU_·_EN-22D3EE?style=flat-square">
-<img alt="Fail-open failure mode" src="https://img.shields.io/badge/failure_mode-fail--open-3FB950?style=flat-square">
+<img alt="Детектор русского и английского" src="https://img.shields.io/badge/detection-RU_·_EN-22D3EE?style=flat-square">
+<img alt="Fail-open режим ошибок" src="https://img.shields.io/badge/failure_mode-fail--open-3FB950?style=flat-square">
 </p>
 
 <p>
-<strong>Profanity-triggered self-audit for coding agents.</strong><br>
-Z.A.E.B.A.L. treats user frustration as an operational signal: stop, re-check the
-agent's assumptions, and escalate repeated failures to an independent auditor.
+<strong>Самоаудит кодинг-агентов, который запускается по сигналу ругани пользователя.</strong><br>
+Z.A.E.B.A.L. воспринимает раздражение пользователя как операционный сигнал: остановиться,
+перепроверить убеждения агента и при повторных ошибках передать сессию независимому
+аудитору.
 </p>
 
 <p>
-<a href="#why-it-exists">Why</a> ·
-<a href="#capability-map">Capabilities</a> ·
-<a href="#how-it-works">How it works</a> ·
-<a href="#install">Install</a> ·
-<a href="#configuration">Configuration</a> ·
-<a href="#architecture">Architecture</a>
+<a href="#зачем-это-нужно">Зачем</a> ·
+<a href="#карта-возможностей">Возможности</a> ·
+<a href="#как-это-работает">Как это работает</a> ·
+<a href="#установка">Установка</a> ·
+<a href="#настройка">Настройка</a> ·
+<a href="#архитектура">Архитектура</a>
 </p>
 
 </div>
 
 ---
 
-## Why it exists
+## Зачем это нужно
 
-When a coding agent gets stuck, it often repeats the same action with small variations
-because one underlying belief about the task or codebase is wrong. The agent still treats
-that belief as a fact, so another self-check can reproduce the same mistake.
+Когда кодинг-агент зацикливается, он часто повторяет одно действие с небольшими
+вариациями. Причина обычно не в невнимательности, а в одном неверном убеждении о задаче
+или кодовой базе. Агент продолжает считать его фактом, поэтому очередная самопроверка
+может воспроизвести ту же ошибку.
 
-Z.A.E.B.A.L. adds a feedback loop to the user-message boundary:
+Z.A.E.B.A.L. добавляет feedback loop на границе пользовательского сообщения:
 
-- profanity and direct complaints become an audit signal;
-- positive profanity such as "заебись, работает" does not add to the streak and closes
-  an active incident as an acknowledgment;
-- repeated signals escalate from a local protocol to a full stop;
-- at level 3, an external agent reads the transcript and repository evidence;
-- work resumes only after an explicit user acknowledgment.
+- мат и прямые претензии становятся сигналом аудита;
+- похвала матом вроде «заебись, работает» не увеличивает стрик и закрывает активный
+  инцидент как подтверждение;
+- повторные сигналы повышают строгость протокола вплоть до полного стопа;
+- на уровне 3 внешний агент читает транскрипт и факты из репозитория;
+- работа возобновляется только после явного подтверждения пользователя.
 
-There is intentionally **no technical tool lock**. The protocol changes the agent's
-instructions and asks it to stop; the human always retains the final control.
+Технической блокировки инструментов намеренно нет. Протокол меняет инструкции агента и
+требует остановиться; окончательный контроль остаётся у человека.
 
-## Capability map
+## Карта возможностей
 
-| Capability | What it does | Implementation |
+| Возможность | Что происходит | Реализация |
 |---|---|---|
-| Multilingual detection | Detects Russian and English profanity, including punctuation-separated and common leetspeak forms. | `core/wordlists/{ru,en}.txt` + NFKC normalization |
-| Intent classification | Separates praise, directed complaints, and ambiguous frustration before changing the streak. | `classify()`; weights `0`, `1.0`, and `0.5` |
-| Session escalation | Tracks each session in a 30-minute sliding window and selects L1, L2, or L3. | Atomic JSON state |
-| Three audit protocols | Injects increasingly strict instructions: independent checks, assumption inventory, and full stop. | `core/protocol/L1.md` → `L3.md` |
-| External auditor | Runs an independent agent against the transcript tail and repository evidence. | `delegate_task` (Hermes) |
-| Hermes adapter | Hooks into Hermes Agent at user-message submission. | `adapters/hermes/hook.py` |
-| Explicit recovery | Resets the incident only after acknowledgment such as `continue`, `продолжай`, or `по плану`. | Per-session state lifecycle |
-| Fail-open safety | A malformed payload, missing auditor, timeout, or internal error never breaks the host session. | Silent exit `0` |
+| Мультиязычный детектор | Распознаёт русский и английский мат, включая разделение знаками и распространённый leetspeak. | `core/wordlists/{ru,en}.txt` + NFKC-нормализация |
+| Классификация намерения | До изменения стрика отделяет похвалу, адресную претензию и неоднозначную ругань. | `classify()`; веса `0`, `1.0` и `0.5` |
+| Сессионная эскалация | Хранит стрик каждой сессии в скользящем окне 30 минут и выбирает L1, L2 или L3. | Атомарный JSON-state |
+| Три протокола аудита | Инжектит всё более строгие инструкции: независимые проверки, инвентаризацию убеждений и полный стоп. | `core/protocol/L1.md` → `L3.md` |
+| Внешний аудитор | Запускает независимого агента на хвосте транскрипта и фактах репозитория. | `delegate_task` (Hermes) |
+| Адаптер Hermes | Перехватывает отправку сообщения в Hermes Agent. | `adapters/hermes/hook.py` |
+| Явное восстановление | Закрывает инцидент только после подтверждения вроде `продолжай`, `согласен` или `по плану`. | Жизненный цикл state каждой сессии |
+| Fail-open | Невалидный payload, отсутствие аудитора, timeout или внутренняя ошибка не ломают сессию хоста. | Тихий exit `0` |
 
-## How it works
+## Как это работает
+
+<p align="center">
+  <img src="./assets/zaebal-schema.png" width="90%" alt="Схема работы Z.A.E.B.A.L.">
+</p>
+
+### Поток данных
 
 ```text
-User message
+Сообщение пользователя
     │
     ▼
-Hermes hook
+Хук Hermes
 on_user_message
     │
     ▼
 core/zaebal.py
 normalize → detect → classify
     │
-    ├─ clean / praise ───────────────────────────────► silence
+    ├─ clean / praise ──────────────────────────────► тишина
     │
     └─ directed (+1.0) / ambiguous (+0.5)
                          │
                          ▼
-                per-session streak
+                  стрик сессии
                          │
               ┌──────────┼──────────┐
               ▼          ▼          ▼
              L1         L2         L3
-              │          │          ├─ external auditor
-              └──────────┴──────────┴─ protocol injected into context
+              │          │          ├─ внешний аудитор
+              └──────────┴──────────┴─ протокол в контекст агента
 ```
 
-### Escalation levels
+### Уровни эскалации
 
-| Level | Streak weight | Agent behavior | External auditor |
+| Уровень | Вес стрика | Поведение агента | Внешний аудитор |
 |---|---:|---|---|
-| **L1** | `1–1.5` | Stop, run two independent checks, inventory assumptions, prepare a micro-plan. | Optional |
-| **L2** | `2–3.5` | Remove unverified assumptions and compare the work against the original request. | Disabled by default |
-| **L3** | `4+` | Stop all agents and background work; show the user the belief, evidence, and mismatch. | Enabled by default |
+| **L1** | `1–1.5` | Остановиться, провести две независимые проверки, инвентаризировать убеждения и подготовить микро-план. | Опционально |
+| **L2** | `2–3.5` | Убрать неподтверждённые предположения и сверить работу с исходным запросом. | По умолчанию выключен |
+| **L3** | `4+` | Остановить всех агентов и фоновые задачи; показать человеку убеждение, доказательства и расхождение. | По умолчанию включён |
 
-Directed complaints add `1.0`; profanity without a detected addressee adds `0.5`.
-The window is 30 minutes. Calm questions do not reset it. Genuine praise or an explicit
-acknowledgment does.
+Адресная претензия добавляет `1.0`, ругань без обнаруженного адресата — `0.5`. Окно
+стрика составляет 30 минут. Спокойный вопрос его не сбрасывает. Настоящая похвала или
+явное подтверждение — сбрасывает.
 
-## Install
+## Установка
 
-Requirements:
+Требования:
 
-- `python3`; the core uses only the standard library;
-- [Hermes Agent](https://hermes-agent.nousresearch.com) with shell hooks support.
+- `python3`; ядро использует только стандартную библиотеку;
+- [Hermes Agent](https://hermes-agent.nousresearch.com) с поддержкой shell hooks.
 
 ```bash
-# Clone the repo
+# Клонировать репозиторий
 git clone https://github.com/region39/Z.a.e.b.a.l ~/.zaebal
 
-# Install the Hermes hook
+# Установить хук Hermes
 mkdir -p ~/.hermes/hooks
 ln -s ~/.zaebal/adapters/hermes/hook.py ~/.hermes/hooks/zaebal.py
 ```
 
-Add to `~/.hermes/config.yaml`:
+Добавить в `~/.hermes/config.yaml`:
 
 ```yaml
 hooks:
@@ -136,30 +144,30 @@ hooks:
         ZAEBAL_STATE_DIR: ~/.zaebal
 ```
 
-Restart Hermes after installation.
+Перезапустить Hermes после установки.
 
-## Verify
+## Проверка
 
-Run the core directly without touching your normal state:
+Запустите ядро напрямую, не затрагивая обычный state:
 
 ```bash
 printf '{"session_id":"demo","prompt":"ты меня заебал"}' \
   | ZAEBAL_STATE_DIR="$(mktemp -d)" python3 core/zaebal.py
 ```
 
-The output should contain `<zaebal level="1">`.
+В выводе должен появиться `<zaebal level="1">`.
 
-Positive profanity should remain silent:
+Похвала матом должна остаться без вывода:
 
 ```bash
 printf '{"session_id":"demo-praise","prompt":"заебись, работает!"}' \
   | ZAEBAL_STATE_DIR="$(mktemp -d)" python3 core/zaebal.py
 ```
 
-## Configuration
+## Настройка
 
-Defaults live in [`core/config.json`](core/config.json). User overrides live in
-`~/.zaebal/config.json` and are loaded on the next trigger:
+Дефолты лежат в [`core/config.json`](core/config.json). Пользовательские
+переопределения — в `~/.zaebal/config.json`; они подхватываются на следующем триггере:
 
 ```json
 {
@@ -171,44 +179,44 @@ Defaults live in [`core/config.json`](core/config.json). User overrides live in
 }
 ```
 
-| Key | Default | Meaning |
+| Ключ | По умолчанию | Назначение |
 |---|---|---|
-| `auditor` | `"same"` | Same vendor as the host, or `"none"`. |
-| `audit_levels` | `[3]` | Levels that synchronously invoke an external auditor. Use `[2, 3]` for earlier audits. |
-| `auditor_timeout_sec` | `90` | Maximum time to wait for the auditor response. |
-| `auditor_command` | `""` | Custom command; the audit prompt is appended as the final argument. |
-| `transcript_tail_chars` | `12000` | Maximum transcript tail sent to the auditor. |
+| `auditor` | `"same"` | Тот же вендор или `"none"`. |
+| `audit_levels` | `[3]` | Уровни, на которых синхронно вызывается внешний аудитор. `[2, 3]` включает его раньше. |
+| `auditor_timeout_sec` | `90` | Максимальное время ожидания ответа аудитора. |
+| `auditor_command` | `""` | Пользовательская команда; audit prompt добавляется последним аргументом. |
+| `transcript_tail_chars` | `12000` | Максимальный хвост транскрипта для аудитора. |
 
-## Architecture
+## Архитектура
 
 ```text
 zaebal/
 ├── core/
-│   ├── zaebal.py          # detection, state, escalation, transcript and auditor
-│   ├── config.json        # default runtime configuration
+│   ├── zaebal.py          # детектор, state, эскалация, транскрипт и аудитор
+│   ├── config.json        # дефолтная runtime-конфигурация
 │   ├── protocol/          # L1.md, L2.md, L3.md
 │   └── wordlists/         # ru.txt, en.txt
 ├── adapters/
-│   └── hermes/            # Hermes Agent shell hook
+│   └── hermes/            # shell hook для Hermes Agent
 ├── skills/
-│   └── zaebal/SKILL.md    # full protocol for the agent
+│   └── zaebal/SKILL.md    # полный протокол для агента
 ├── tests/
 ├── .gitignore
 ├── README.md
-└── README.ru.md
+└── README.en.md
 ```
 
-## Named error patterns
+## Именованные паттерны ошибок
 
-Recognize these patterns in your own behavior — they are collected from real agent-session postmortems:
+Узнаваемые паттерны из реальных постмортемов:
 
-- **Sycophancy.** The agent agrees with criticism out of politeness and abandons a working solution under pressure.
-- **Hallucinated correctness.** The opposite extreme: the agent defends its code to the end, inventing facts — imaginary passing tests, nonexistent library features, fabricated documentation.
-- **Grounding in reality (execution over intuition).** The cure for both extremes: defending code with verbal arguments is forbidden — only a micro-test, a run, logs.
-- **First plausible hypothesis.** A lone agent fixates on the first plausible version of the bug's cause. That is why there are two auditors and they get raw artifacts, not your hypothesis.
-- **FACT/HYPOTHESIS calibration.** During the belief inventory, tag every statement: FACT — only if confirmed by execution (a run, a file, a log), otherwise HYPOTHESIS.
-- **Written ≠ took effect.** The agent created a config, a hook, an instruction file, or an env variable and assumes it works because "the file is there". But the system may consume it from a different path. Verify not the act of writing but the act of consumption.
+- **Подхалимаж (sycophancy).** Агент соглашается с критикой из вежливости и бросает рабочее решение.
+- **Галлюцинированная корректность.** Обратный перекос: агент защищает код до конца, выдумывая проходящие тесты, несуществующие фичи, вымышленную документацию.
+- **Заземление в реальность (запуск, а не слова).** Лекарство от обоих крайностей: защита кода только через микро-тест, запуск, логи. Словами — нельзя.
+- **Первая правдоподобная гипотеза.** Один агент фиксируется на первой версии причины бага. Поэтому аудиторов — два, и они получают сырые артефакты.
+- **FACT/HYPOTHESIS калибровка.** Тегировать каждое утверждение: FACT — только если подтверждено выполнением, иначе HYPOTHESIS.
+- **Written ≠ took effect.** Конфиг написан, но система читает из другого пути. Проверять не факт записи, а факт потребления.
 
-## License
+## Лицензия
 
 MIT
